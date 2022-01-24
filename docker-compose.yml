@@ -1,0 +1,29 @@
+version: '3'
+ 
+services:
+  auction_db:
+    image: mysql:5.7
+    container_name: auction_db
+    environment:
+      MYSQL_ROOT_PASSWORD: 12345
+      MYSQL_DATABASE: auction_db
+      MYSQL_USER: administrator
+      MYSQL_PASSWORD: 12345
+    ports:
+      - "6033:3306"
+    volumes:
+      - dbdata:/var/lib/mysql
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: auction_admin
+    links:
+      - auction_db
+    environment: 
+      PMA_HOST: auction_db
+      PMA_PORT: 3306
+      PMA_ARBITRARY: 1
+    restart: always
+    ports:
+      - 8081:80
+volumes:
+  dbdata:
