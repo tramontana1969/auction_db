@@ -7,7 +7,7 @@
     <body>
     <style>
         TABLE {
-            width: 300px;
+            width: 400px;
             border-collapse: collapse;
         }
         TD, TH {
@@ -27,6 +27,7 @@
                 <th>id</th>
                 <th>name</th>
                 <th>delete customer</th>
+                <th>edit customer</th>
             </tr>";
     while ($row = $res->fetch()) {
         echo "<tr>";
@@ -37,6 +38,11 @@
                         <input type='hidden' name='id' value='".$row['id']."'>
                         <input type='submit' value='delete'/>
                     </form>
+                </td>";
+            echo "<td>
+                    <a href='update/update_customer.php?id=".$row['id']."'>
+                        <button>edit</button>
+                    </a>        
                 </td>";
         echo "</tr>";
     }

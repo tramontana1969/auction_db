@@ -29,6 +29,7 @@
             <th>seller_id</th>
             <th>customer_id</th>
             <th>delete item</th>
+            <th>update item</th>
         </tr>";
     while ($row = $res->fetch()) {
         echo "<tr>";
@@ -42,6 +43,11 @@
                         <input type='hidden' name='id' value='".$row['id']."'/>
                         <input type='submit' value='delete'/>
                     </form>
+                </td>";
+            echo "<td>
+                    <a href='update/update_item.php?id={$row['id']}'>
+                        <button>Edit</button>
+                    </a>
                 </td>";
         echo "</tr>";
     }

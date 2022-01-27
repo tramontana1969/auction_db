@@ -29,6 +29,7 @@
                 <th>place</th>
                 <th>description</th>
                 <th>delete auction</th>
+                <th>edit auction</th>
             </tr>";
     while ($row = $res->fetch()) {
         echo "<tr>";
@@ -42,6 +43,11 @@
                         <input type='hidden' name='id' value='".$row['id']."'/>
                         <input type='submit' value='delete'/>
                     </form>
+                </td>";
+            echo "<td>
+                    <a href='update/update_auction.php?id=".$row['id']."'>
+                        <button>Update</button>
+                    </a>
                 </td>";
         echo "</tr>";
     }
