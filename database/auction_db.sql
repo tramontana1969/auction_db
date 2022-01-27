@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: auction_db:3306
--- Generation Time: Jan 26, 2022 at 06:49 PM
+-- Generation Time: Jan 27, 2022 at 12:37 PM
 -- Server version: 5.7.36
 -- PHP Version: 7.4.20
 
@@ -40,16 +40,25 @@ CREATE DEFINER=`administrator`@`%` PROCEDURE `auction_in_place` (IN `location` C
 
 CREATE DEFINER=`administrator`@`%` PROCEDURE `auction_list` (IN `first` DATE, IN `second` DATE)  SELECT date, place FROM auction WHERE date BETWEEN first AND second$$
 
-CREATE DEFINER=`administrator`@`%` PROCEDURE `customer_list` (IN `start` DATE, IN `end` DATE)  SELECT customer.name FROM customer, item, auction, auction_item WHERE customer.id = item.customer_id AND auction_item.item_id = item.id AND auction.id = auction_item.auction_id AND auction.date BETWEEN start AND end GROUP BY customer.name$$
+CREATE DEFINER=`administrator`@`%` PROCEDURE `customer_list` (IN `start` DATE, IN `end` DATE)  SELECT customer.name, item.name, auction.date
+FROM customer JOIN item ON customer.id = item.customer_id JOIN auction_item ON item.id = auction_item.id JOIN auction ON auction.id = auction_item.auction_id
+WHERE auction.date BETWEEN start AND end$$
 
-CREATE DEFINER=`administrator`@`%` PROCEDURE `item_list` (IN `first` DATE, IN `second` DATE)  SELECT item.name FROM item, auction_item, auction WHERE item.id = auction_item.item_id AND auction_item.actual_price IS NOT NULL AND auction_item.auction_id = auction.id AND auction.date BETWEEN first and second$$
+CREATE DEFINER=`administrator`@`%` PROCEDURE `item_list` (IN `first` DATE, IN `second` DATE)  SELECT item.name FROM 
+item JOIN auction_item ON item.id = auction_item.item_id JOIN auction ON auction.id = auction_item.auction_id 
+WHERE auction.date BETWEEN first AND second$$
 
-CREATE DEFINER=`administrator`@`%` PROCEDURE `salary` ()  SELECT description, date, (
-SELECT SUM(actual_price) FROM auction_item WHERE auction_id = auction.id) AS salary from auction ORDER BY salary$$
+CREATE DEFINER=`administrator`@`%` PROCEDURE `salary` ()  SELECT auction.description, auction.date, SUM(auction_item.actual_price) AS salary
+FROM auction JOIN auction_item ON auction.id = auction_item.auction_id
+GROUP BY auction.id ORDER BY salary$$
 
-CREATE DEFINER=`administrator`@`%` PROCEDURE `sellers_names` (IN `start` DATE, IN `end` DATE)  SELECT seller.name FROM seller, auction_item, item, auction WHERE seller.id = item.seller_id AND item.id = auction_item.item_id AND auction.id = auction_item.auction_id AND auction.date BETWEEN start AND end$$
+CREATE DEFINER=`administrator`@`%` PROCEDURE `sellers_names` (IN `start` DATE, IN `end` DATE)  SELECT seller.name, auction.date
+FROM seller JOIN item ON seller.id = item.seller_id JOIN auction_item ON item.id = auction_item.item_id JOIN auction ON auction.id = auction_item.id
+WHERE auction.date BETWEEN start AND end$$
 
-CREATE DEFINER=`administrator`@`%` PROCEDURE `seller_list` (IN `start` DATE, IN `end` DATE)  SELECT seller.name, SUM(auction_item.actual_price) FROM seller, auction_item, item, auction WHERE seller.id = item.seller_id and auction_item.item_id = item.id AND auction_item.actual_price IS NOT NULL AND auction_item.auction_id = auction.id AND auction.date BETWEEN start AND end GROUP BY seller.name$$
+CREATE DEFINER=`administrator`@`%` PROCEDURE `seller_list` (IN `start` DATE, IN `end` DATE)  SELECT seller.name, SUM(auction_item.actual_price) AS salary
+FROM seller JOIN item ON seller.id = item.seller_id JOIN auction_item ON item.id = auction_item.item_id JOIN auction ON auction.id = auction_item.auction_id
+WHERE auction.date BETWEEN start AND end GROUP BY seller.name$$
 
 CREATE DEFINER=`administrator`@`%` PROCEDURE `sell_item` (IN `auction` INT, IN `item` INT, IN `price` INT, IN `descr` TEXT)  INSERT INTO auction_item (auction_id, item_id, start_price, description) VALUES (auction, item, price, descr)$$
 
@@ -81,7 +90,8 @@ INSERT INTO `auction` (`id`, `date`, `time`, `place`, `description`) VALUES
 (1, '2022-01-02', '12:00:00', 'New York', 'Some old stuff for selling'),
 (2, '2021-11-10', '11:30:00', 'Sydney', 'Selling old original paintings'),
 (3, '2021-05-30', '11:00:00', 'Moscow', 'Selling old russian forks'),
-(4, '2022-01-05', '15:30:00', 'Minsk', 'Ctoto');
+(4, '2022-01-04', '15:25:00', 'Minsk', 'Ctoto'),
+(5, '2022-01-03', '11:30:00', 'Sydney', 'qwertyuio');
 
 -- --------------------------------------------------------
 
@@ -106,7 +116,10 @@ INSERT INTO `auction_item` (`id`, `auction_id`, `item_id`, `start_price`, `actua
 (1, 1, 2, 250000, 800, 'Very old cars'),
 (2, 2, 1, 387000000, 525, 'Original Mona Lisa by Da Vinci'),
 (3, 2, 3, 150000, 12345, 'An original painting by Salvador Dali'),
-(7, 1, 2, 123, NULL, 'asddad');
+(7, 1, 1, 123, NULL, 'wqwq'),
+(8, 5, 3, 15000, 250000, 'fdsafdsaf'),
+(9, 4, 4, 58, 585, 'mmm'),
+(10, 4, 1, 65, 82828282, 'iii');
 
 -- --------------------------------------------------------
 
@@ -152,7 +165,7 @@ INSERT INTO `item` (`id`, `name`, `lot`, `seller_id`, `customer_id`) VALUES
 (1, 'Mona Lisa', 123, 1, 1),
 (2, 'BMW', 789, 2, 2),
 (3, 'La persistencia de la memoria', NULL, 3, 2),
-(4, 'weeeee', 343, 1, NULL);
+(4, 'weeeee', NULL, 4, NULL);
 
 -- --------------------------------------------------------
 
@@ -222,7 +235,7 @@ ALTER TABLE `seller`
 -- AUTO_INCREMENT for table `auction`
 --
 ALTER TABLE `auction`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT for table `auction_item`
@@ -234,19 +247,19 @@ ALTER TABLE `auction_item`
 -- AUTO_INCREMENT for table `customer`
 --
 ALTER TABLE `customer`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT for table `item`
 --
 ALTER TABLE `item`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=19;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT for table `seller`
 --
 ALTER TABLE `seller`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- Constraints for dumped tables
